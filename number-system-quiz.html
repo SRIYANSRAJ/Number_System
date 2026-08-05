@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inter-Base Logic | Number Converter</title>
+  <!-- Unified Coding Logo Favicon -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23g)'/%3E%3Cpath d='M30 32 L16 50 L30 68 M70 32 L84 50 L70 68 M56 22 L44 78' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+  <!-- Firebase SDK & Route Protection Script -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="script.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --success: #10b981;
+      --error: #ef4444;
+      --text-dark: #1e1b4b;
+      --text-muted: #64748b;
+      --glass: rgba(255, 255, 255, 0.80);
+      --border: rgba(255, 255, 255, 0.60);
+      --shadow: 0 20px 40px -8px rgba(60, 40, 120, 0.15), 0 4px 16px rgba(99, 102, 241, 0.08);
+    }
+
+    /* Time Greeting corner pill */
+    .time-greeting-quiz {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.80);
+      box-shadow: 0 4px 18px rgba(99, 102, 241, 0.12);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e1b4b;
+      white-space: nowrap;
+      animation: greetSlide 0.6s ease;
+    }
+
+    .time-greeting-quiz .greet-name {
+      color: #4f46e5;
+      font-weight: 700;
+    }
+
+    @keyframes greetSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Points badge in quiz header */
+    .quiz-pts-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.24));
+      border: 1.5px solid rgba(251, 191, 36, 0.40);
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+      margin-top: 10px;
+      cursor: default;
+    }
+
+    .quiz-pts-badge svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text-dark);
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    /* Soft Animated Mesh Background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -15%;
+      left: -15%;
+      width: 130%;
+      height: 130%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.20) 0%, transparent 45%);
+      filter: blur(60px);
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      animation: meshMove 20s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes meshMove {
+      0% {
+        transform: scale(1) translate3d(0, 0, 0) rotate(0deg);
+      }
+
+      50% {
+        transform: scale(1.06) translate3d(-1.5%, 1.5%, 0) rotate(2deg);
+      }
+
+      100% {
+        transform: scale(1.03) translate3d(1.5%, -1%, 0) rotate(-1deg);
+      }
+    }
+
+    .nav-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+      border: 1.5px solid rgba(99, 102, 241, 0.2);
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-back-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 720px;
+      background: var(--glass);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 40px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0;
+      color: var(--text-dark);
+      letter-spacing: -1.2px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    /* Controls Section */
+    .control-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 15px;
+      align-items: end;
+      margin-bottom: 25px;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-group label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+    }
+
+    select {
+      appearance: none;
+      background: white;
+      border: 1.5px solid #cbd5e1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 14px;
+    }
+
+    /* Toggle Switch */
+    .switch-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: var(--primary);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Main Display */
+    .display-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 20px;
+      text-align: center;
+      box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 25px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-from {
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .badge-to {
+      background: #fffbeb;
+      color: #92400e;
+    }
+
+    .big-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text-dark);
+      word-break: break-all;
+      letter-spacing: -1.5px;
+    }
+
+    /* Interaction */
+    #answerInput {
+      width: 100%;
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 18px;
+      border-radius: 18px;
+      font-size: 22px;
+      text-align: center;
+      font-family: monospace;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
+    #answerInput:focus {
+      border-color: var(--primary);
+      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-check {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-reveal {
+      background: #f1f5f9;
+      color: var(--text-muted);
+    }
+
+    #btn-next {
+      background: white;
+      border: 2.5px solid var(--primary);
+      color: var(--primary);
+      width: 100%;
+      margin-bottom: 25px;
+    }
+
+    button:disabled {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      pointer-events: none !important;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .feedback {
+      padding: 20px;
+      border-radius: 18px;
+      display: none;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 20px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1.5px solid #bbf7d0;
+    }
+
+    .fail {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1.5px solid #fecaca;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 25px;
+      border-top: 1.5px solid #f1f5f9;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    footer {
+      margin-top: 50px;
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 600px) {
+      .control-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .app-container {
+        padding: 25px 20px;
+      }
+
+      .big-number {
+        font-size: 30px;
+      }
+    }
+  </style>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- TIME GREETING (top-right corner) -->
+  <div class="time-greeting-quiz" id="timeGreeting">
+    <span id="greetEmoji">👋</span>
+    <span id="greetText">Welcome!</span>
+  </div>
+
+  <div class="app-container">
+    <div
+      style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+      <a href="index1.html" class="nav-back-link" style="margin-bottom:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Arithmetic Trainer
+      </a>
+      <button onclick="logoutUser()" class="nav-back-link"
+        style="margin-bottom:0; background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.2); color:#ef4444; cursor:pointer;">
+        🔒 Logout
+      </button>
+    </div>
+
+    <header>
+      <h1>Inter-Base Logic</h1>
+      <p>Multi-System Precision Training</p>
+      <!-- Digital Points badge -->
+      <div class="quiz-pts-badge" id="quizPtsBadge" title="Your total Digital Points">
+        <!-- NSP Coin SVG -->
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="17" fill="url(#cg1)" stroke="rgba(251,191,36,0.6)" stroke-width="1.5" />
+          <defs>
+            <linearGradient id="cg1" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#fbbf24" />
+              <stop offset="100%" stop-color="#f59e0b" />
+            </linearGradient>
+          </defs>
+          <text x="18" y="23" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800"
+            fill="#fff" letter-spacing="-0.5">P</text>
+        </svg>
+        <span id="quizPtsValue">0 pts</span>
+      </div>
+    </header>
+
+    <div class="control-panel">
+      <div class="field-group">
+        <label>Capacity</label>
+        <select id="bitWidth" onchange="generateQuestion()">
+          <option value="4">4-Bit</option>
+          <option value="8" selected>8-Bit</option>
+          <option value="16">16-Bit</option>
+          <option value="32">32-Bit</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>From</label>
+        <select id="sourceBase" onchange="generateQuestion()">
+          <option value="random">Random</option>
+          <option value="2">Binary</option>
+          <option value="8">Octal</option>
+          <option value="10">Decimal</option>
+          <option value="16">Hex</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>To</label>
+        <select id="targetBase" onchange="generateQuestion()">
+          <option value="random">Random</option>
+          <option value="2">Binary</option>
+          <option value="8">Octal</option>
+          <option value="10">Decimal</option>
+          <option value="16">Hex</option>
+        </select>
+      </div>
+      <div class="switch-container">
+        <label style="font-size: 10px; font-weight: 800; color: var(--text-muted);">POINTS</label>
+        <label class="switch">
+          <input type="checkbox" id="fracToggle" onchange="generateQuestion()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <button id="btn-next" onclick="generateQuestion()">Next Question</button>
+
+    <div class="display-card">
+      <div class="badge-row">
+        <span class="badge badge-from" id="sourceLbl">Binary</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+        <span class="badge badge-to" id="targetLbl">Decimal</span>
+      </div>
+      <div class="big-number" id="questionValue">0</div>
+    </div>
+
+    <input type="text" id="answerInput" placeholder="Type conversion result..." autocomplete="off">
+
+    <div class="btn-row">
+      <button class="btn-check" onclick="verifyAnswer()">Verify Logic</button>
+      <button class="btn-reveal" id="btnReveal" onclick="showAnswer()" disabled>Show Answer</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="stats">
+      <span>Performance: <span id="scoreCorrect" style="color:var(--primary)">0</span>/<span
+          id="scoreTotal">0</span></span>
+      <span>Streak: <span id="streak" style="color:var(--success)">0</span> 🔥</span>
+    </div>
+  </div>
+
+  <footer>
+    Vibe Coded by Sriyans Raj © 2026
+  </footer>
+
+  <script>
+    const BASES = { 2: 'Binary', 8: 'Octal', 10: 'Decimal', 16: 'Hex' };
+    const BASE_LIST = [2, 8, 10, 16];
+    let currentQ = null;
+    let stats = { correct: 0, total: 0, streak: 0 };
+
+    // Improved randomizer for up to 32-bit integers
+    function randInt(bits) {
+      const max = Math.pow(2, bits);
+      // Ensuring it feels like the selected bit width by focusing on higher range
+      const min = Math.pow(2, bits - 4) || 0;
+      return Math.floor(Math.random() * (max - min) + min);
+    }
+
+    function generateQuestion() {
+      const bits = parseInt(document.getElementById('bitWidth').value);
+      const hasFrac = document.getElementById('fracToggle').checked;
+
+      let sB = document.getElementById('sourceBase').value;
+      let tB = document.getElementById('targetBase').value;
+
+      if (sB === 'random') sB = BASE_LIST[Math.floor(Math.random() * 4)];
+      if (tB === 'random') tB = BASE_LIST[Math.floor(Math.random() * 4)];
+
+      sB = parseInt(sB); tB = parseInt(tB);
+      if (sB === tB) tB = (sB === 16) ? 10 : sB + (sB === 2 ? 6 : 2);
+
+      const intPart = randInt(bits);
+      const fracNum = hasFrac ? Math.floor(Math.random() * 15) + 1 : 0;
+
+      currentQ = {
+        sB, tB,
+        qStr: format(intPart, fracNum, sB, hasFrac),
+        aStr: format(intPart, fracNum, tB, hasFrac)
+      };
+
+      document.getElementById('sourceLbl').textContent = BASES[currentQ.sB];
+      document.getElementById('targetLbl').textContent = BASES[currentQ.tB];
+      document.getElementById('questionValue').textContent = currentQ.qStr;
+      document.getElementById('answerInput').value = "";
+      document.getElementById('feedback').style.display = "none";
+      document.getElementById('btnReveal').disabled = true;
+    }
+
+    function format(int, frac, base, hasFrac) {
+      let s = int.toString(base).toUpperCase();
+      if (hasFrac) {
+        let f = "";
+        let temp = frac;
+        for (let i = 0; i < 4; i++) {
+          temp *= base;
+          let d = Math.floor(temp / 16);
+          f += d.toString(36).toUpperCase();
+          temp %= 16;
+          if (temp === 0) break;
+        }
+        s += "." + f;
+      }
+      return s;
+    }
+
+    function normalize(s) {
+      if (!s) return "";
+      let c = s.trim().toUpperCase().replace(/^0[B|X|O]/, "");
+      let [i, f] = c.split('.');
+      i = i ? i.replace(/^0+/, '') : "0";
+      if (i === "") i = "0";
+      if (f) {
+        f = f.replace(/0+$/, '');
+        return f.length ? i + "." + f : i;
+      }
+      return i;
+    }
+
+    function verifyAnswer() {
+      const user = normalize(document.getElementById('answerInput').value);
+      const correct = normalize(currentQ.aStr);
+      const isCorrect = user === correct;
+
+      document.getElementById('btnReveal').disabled = false;
+      stats.total++;
+      const fb = document.getElementById('feedback');
+      fb.style.display = "block";
+
+      if (isCorrect) {
+        stats.correct++;
+        stats.streak++;
+        fb.className = "feedback success";
+        // Award conversion points via the global points engine
+        let earnedMsg = '';
+        if (window.NST && window.NST.awardConversionPoints) {
+          const earned = window.NST.awardConversionPoints();
+          earnedMsg = ` <span style="color:#15803d;font-size:12px;">+${earned} pts 🪙</span>`;
+          updateQuizPtsBadge();
+        }
+        fb.innerHTML = `✓ <b>Logic Confirmed!</b> Excellent work.${earnedMsg}`;
+      } else {
+        stats.streak = 0;
+        fb.className = "feedback fail";
+        fb.innerHTML = `✗ <b>Discrepancy Detected.</b> Value: <code>${currentQ.aStr}</code>`;
+      }
+      updateStats();
+    }
+
+    function updateQuizPtsBadge() {
+      const el = document.getElementById('quizPtsValue');
+      if (!el) return;
+      const stats = window.NST ? window.NST.getStats() : null;
+      if (stats) el.textContent = stats.points + ' pts';
+    }
+
+    function showAnswer() {
+      if (document.getElementById('btnReveal').disabled) return;
+      const fb = document.getElementById('feedback');
+      fb.style.display = "block";
+      fb.className = "feedback fail";
+      fb.innerHTML = `Logic target: <code>${currentQ.aStr}</code>`;
+      document.getElementById('answerInput').value = currentQ.aStr;
+    }
+
+    function updateStats() {
+      document.getElementById('scoreCorrect').textContent = stats.correct;
+      document.getElementById('scoreTotal').textContent = stats.total;
+      document.getElementById('streak').textContent = stats.streak;
+    }
+
+    document.getElementById('answerInput').addEventListener('input', () => {
+      const val = document.getElementById('answerInput').value.trim();
+      document.getElementById('btnReveal').disabled = (val.length === 0);
+    });
+
+    generateQuestion();
+    document.getElementById('answerInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') verifyAnswer();
+    });
+
+    // Inject time greeting and initial points badge on load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.NST) {
+        window.NST.injectTimeGreeting();
+        updateQuizPtsBadge();
+      }
+    });
+    // Fallback if DOMContentLoaded already fired
+    if (document.readyState !== 'loading') {
+      if (window.NST) {
+        window.NST.injectTimeGreeting();
+        updateQuizPtsBadge();
+      }
+    }
+  </script>
+</body>
+
+</html>
